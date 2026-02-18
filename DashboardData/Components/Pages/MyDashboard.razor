@@ -1,0 +1,69 @@
+﻿@using DashboardData.Models
+@using DashboardData.Services
+@page "/dashboard"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject ISensorService SensorService
+@inject NavigationManager NavManager
+
+
+<PageTitle>Mon Dashboard Data</PageTitle>
+
+<h1>Tableau de Bord</h1>
+
+<div class="alert-info" >  
+    Bienvenue sur l'interface de pilotage.
+    Nous somes le : <strong>@DateTime.Now.ToString("dd MMM yyyy")</strong>
+</div>
+
+<p>
+    Status du système :
+
+    @if (IsSystemOK) { 
+        <span class="badge bg-success">Opérationnel</span>  
+    }
+    else  {
+            <span class="badge bg-danger">Erreur Critique</span>
+    }
+</p>
+
+@if(_isLoading) {
+    <p><em>Chargement des données...</em></p>
+}
+else {
+    <button class="btn btn-primary" @onclick="AddNewSensor">Add New</button>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Capteur</th>
+                <th>Valeur</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var sensor in _sensors)
+            {
+                <tr>
+                    <td>@sensor.Name</td>
+                    <td>@sensor.Value</td>
+                </tr>
+            }
+        </tbody>
+</table>
+}
+
+@code {
+
+    private bool IsSystemOK = true;
+    private List<SensorData> _sensors = new List<SensorData>();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sensors = await SensorService.GetSensorDataAsync();
+        _isLoading = false;
+    }
+    private void AddNewSensor(MouseEventArgs args)
+    {
+        NavManager.NavigateTo("/add-sensor");
+    }
+}
