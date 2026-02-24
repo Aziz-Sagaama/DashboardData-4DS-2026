@@ -1,7 +1,29 @@
-﻿namespace DashboardData.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DashboardData.Models
 {
     public class SensorData    {
+
+        [Key]
+        public int Id { get; set; }
         public string Name { get; set; }
+
+        public string Type { get; set; } = "Temperature";
         public double Value { get; set; }
+
+        public DateTime LastUpdate { get; set; } = DateTime.Now;
+
+
+        //====== Entity Framework Core relationships ======
+
+        // Foreign key to Location (1-to-N): 1 sensor belongs to 1 location
+        public int LocationId { get; set; }  
+        public Location Location { get; set; }
+
+        // Many-to-Many relationship with Tag: 1 sensor can have multiple tags, and 1 tag can be associated with multiple sensors
+        public ICollection<Tag> Tags { get; set; } = new List<Tag>();  
+
+        // One-to-Many relationship with SensorValueHistor: 1 sensor can have multiple historical values
+        public ICollection<SensorValueHistor> SensorValueHistories { get; set; } = new List<SensorValueHistor>();
     }
 }
