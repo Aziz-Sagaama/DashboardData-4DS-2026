@@ -1,25 +1,55 @@
-﻿using DashboardData.Models;
+﻿using DashboardData.Data;
+using DashboardData.Models;
+using Microsoft.EntityFrameworkCore;
 namespace DashboardData.Services
 {
     public class SensorService : ISensorService
     {
-        private readonly List<SensorData> _sensors = new List<SensorData>()
+        private readonly AppDbContext _dbContext;
+        public SensorService(AppDbContext dbContext)
         {
-            new SensorData { Name = "Temp_Salon", Value = 22.5 },
-            new SensorData { Name = "Hum_Cuisine", Value = 45.0 },
-            new SensorData { Name = "C02_Bureau", Value = 800 },
-            new SensorData { Name = "Temp_Chambre", Value = 20.0 },
-            new SensorData { Name = "Hum_Salon", Value = 40.0 },
-            new SensorData { Name = "Temp_Bureau", Value = 600 },
-        };
-        public async Task<List<SensorData>> GetSensorDataAsync()
-        {
-            await Task.Delay(2000); // Simulate async data retrieval
-            return _sensors;
+            this._dbContext = dbContext;
         }
-        public void AddSensor(SensorData sensorData)
+
+        public async Task<List<SensorData>> GetSensorsAsync()
         {
-            _sensors.Add(sensorData);
+            // EF Core traduit Include par un JOIN SQL vers la table Location
+            return await _dbContext.Sensors
+                .Include(s => s.Location)
+                .ToListAsync();
+        }
+
+        public async Task AddSensorAsync(SensorData sensorData)
+        {
+            await _dbContext.Sensors.AddAsync(sensorData);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<SensorData>> GetCriticalSensorsAsync(double threshold)
+        {
+            return await _dbContext.Sensors
+                .Include(s => s.Location)
+                .Where(s => s.Value > threshold) 
+                .OrderByDescending(s => s.Value) 
+                .ToListAsync();                  
+        }
+
+        public async Task<double> GetAverageValueAsync()
+        {
+            if (!await _dbContext.Sensors.AnyAsync()) return 0;
+
+            return await _dbContext.Sensors.AverageAsync(s => s.Value);
+        }
+
+        public async Task<double> GetMaxValueAsync()
+        {
+            if (!await _dbContext.Sensors.AnyAsync()) return 0;
+            return await _dbContext.Sensors.MaxAsync(s => s.Value);
+        }
+
+        public async Task<int> GetTotalCountAsync()
+        {
+            return await _dbContext.Sensors.CountAsync();
         }
     }
 }
