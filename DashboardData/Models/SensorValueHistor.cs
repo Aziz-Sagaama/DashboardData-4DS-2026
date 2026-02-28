@@ -7,7 +7,7 @@ namespace DashboardData.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public double Value { get; set; }
+        public double MeasuredValue { get; set; }
 
         public DateTime Timestamp { get; set; } = DateTime.Now;
 
