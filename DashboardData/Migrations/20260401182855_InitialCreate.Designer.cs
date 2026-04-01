@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DashboardData.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260224221411_AddSensorValueHistory")]
-    partial class AddSensorValueHistory
+    [Migration("20260401182855_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,6 +67,28 @@ namespace DashboardData.Migrations
                     b.ToTable("Sensors");
                 });
 
+            modelBuilder.Entity("DashboardData.Models.SensorValueHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("MeasuredValue")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("SensorDataId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SensorDataId");
+
+                    b.ToTable("SensorValueHistory");
+                });
+
             modelBuilder.Entity("DashboardData.Models.Tag", b =>
                 {
                     b.Property<int>("Id")
@@ -109,6 +131,17 @@ namespace DashboardData.Migrations
                     b.Navigation("Location");
                 });
 
+            modelBuilder.Entity("DashboardData.Models.SensorValueHistory", b =>
+                {
+                    b.HasOne("DashboardData.Models.SensorData", "SensorData")
+                        .WithMany("SensorValueHistories")
+                        .HasForeignKey("SensorDataId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SensorData");
+                });
+
             modelBuilder.Entity("SensorDataTag", b =>
                 {
                     b.HasOne("DashboardData.Models.SensorData", null)
@@ -127,6 +160,11 @@ namespace DashboardData.Migrations
             modelBuilder.Entity("DashboardData.Models.Location", b =>
                 {
                     b.Navigation("Sensors");
+                });
+
+            modelBuilder.Entity("DashboardData.Models.SensorData", b =>
+                {
+                    b.Navigation("SensorValueHistories");
                 });
 #pragma warning restore 612, 618
         }

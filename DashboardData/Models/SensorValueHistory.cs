@@ -2,7 +2,7 @@
 
 namespace DashboardData.Models
 {
-    public class SensorValueHistor
+    public class SensorValueHistory
     {
         [Key]
         public int Id { get; set; }

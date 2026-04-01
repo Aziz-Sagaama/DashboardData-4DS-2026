@@ -64,7 +64,7 @@ namespace DashboardData.Migrations
                     b.ToTable("Sensors");
                 });
 
-            modelBuilder.Entity("DashboardData.Models.SensorValueHistor", b =>
+            modelBuilder.Entity("DashboardData.Models.SensorValueHistory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -83,7 +83,7 @@ namespace DashboardData.Migrations
 
                     b.HasIndex("SensorDataId");
 
-                    b.ToTable("SensorValueHistor");
+                    b.ToTable("SensorValueHistory");
                 });
 
             modelBuilder.Entity("DashboardData.Models.Tag", b =>
@@ -128,7 +128,7 @@ namespace DashboardData.Migrations
                     b.Navigation("Location");
                 });
 
-            modelBuilder.Entity("DashboardData.Models.SensorValueHistor", b =>
+            modelBuilder.Entity("DashboardData.Models.SensorValueHistory", b =>
                 {
                     b.HasOne("DashboardData.Models.SensorData", "SensorData")
                         .WithMany("SensorValueHistories")

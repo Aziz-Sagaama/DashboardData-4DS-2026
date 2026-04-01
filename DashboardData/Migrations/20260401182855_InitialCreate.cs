@@ -85,6 +85,27 @@ namespace DashboardData.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SensorValueHistory",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    MeasuredValue = table.Column<double>(type: "REAL", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    SensorDataId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SensorValueHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SensorValueHistory_Sensors_SensorDataId",
+                        column: x => x.SensorDataId,
+                        principalTable: "Sensors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_SensorDataTag_TagsId",
                 table: "SensorDataTag",
@@ -94,6 +115,11 @@ namespace DashboardData.Migrations
                 name: "IX_Sensors_LocationId",
                 table: "Sensors",
                 column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SensorValueHistory_SensorDataId",
+                table: "SensorValueHistory",
+                column: "SensorDataId");
         }
 
         /// <inheritdoc />
@@ -103,10 +129,13 @@ namespace DashboardData.Migrations
                 name: "SensorDataTag");
 
             migrationBuilder.DropTable(
-                name: "Sensors");
+                name: "SensorValueHistory");
 
             migrationBuilder.DropTable(
                 name: "Tags");
+
+            migrationBuilder.DropTable(
+                name: "Sensors");
 
             migrationBuilder.DropTable(
                 name: "Locations");

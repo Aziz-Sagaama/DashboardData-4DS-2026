@@ -24,6 +24,6 @@ namespace DashboardData.Models
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();  
 
         // One-to-Many relationship with SensorValueHistor: 1 sensor can have multiple historical values
-        public ICollection<SensorValueHistor> SensorValueHistories { get; set; } = new List<SensorValueHistor>();
+        public ICollection<SensorValueHistory> SensorValueHistories { get; set; } = new List<SensorValueHistory>();
     }
 }
