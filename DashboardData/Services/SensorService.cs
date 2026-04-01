@@ -19,10 +19,58 @@ namespace DashboardData.Services
                 .ToListAsync();
         }
 
-        public async Task AddSensorAsync(SensorData sensorData)
+        public async Task<List<Location>> GetLocationsAsync()
         {
-            await _dbContext.Sensors.AddAsync(sensorData);
+            return await _dbContext.Locations.ToListAsync();
+        }
+
+        public async Task<SensorData?> GetSensorByIdAsync(int id)
+        {
+            // FindAsync searches directly by Primary Key (Id)
+            return await _dbContext.Sensors.FindAsync(id);
+        }
+
+        public async Task ReloadSensorAsync(SensorData sensor)
+        {
+            await _dbContext.Entry(sensor).ReloadAsync();
+        }
+
+        public async Task AddSensorAsync(SensorData sensor)
+        {
+            sensor.LastUpdate = DateTime.Now;
+            
+            // Archiving the initial value (from LAB 5)
+            sensor.SensorValueHistories.Add(new SensorValueHistory {
+                MeasuredValue = sensor.Value,
+                Timestamp = DateTime.Now
+            });
+
+            _dbContext.Sensors.Add(sensor);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateSensorAsync(SensorData sensor)
+        {
+            sensor.LastUpdate = DateTime.Now; // Update the date
+            
+            // Adding to the history upon modification (from LAB 5)
+            sensor.SensorValueHistories.Add(new SensorValueHistory {
+                MeasuredValue = sensor.Value,
+                Timestamp = DateTime.Now
+            });
+
+            _dbContext.Sensors.Update(sensor);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteSensorAsync(int id)
+        {
+            var sensor = await _dbContext.Sensors.FindAsync(id);
+            if (sensor != null)
+            {
+                _dbContext.Sensors.Remove(sensor);
+                await _dbContext.SaveChangesAsync();
+            }
         }
 
         public async Task<List<SensorData>> GetCriticalSensorsAsync(double threshold)

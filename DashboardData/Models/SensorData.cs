@@ -6,9 +6,11 @@ namespace DashboardData.Models
 
         [Key]
         public int Id { get; set; }
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Name must be between 3 and 50 characters.")]
         public string Name { get; set; }
 
         public string Type { get; set; } = "Temperature";
+        [Range(-50.0, 150.0, ErrorMessage = "Value must be between -50.0 and 150.0.")]
         public double Value { get; set; }
 
         public DateTime LastUpdate { get; set; } = DateTime.Now;
@@ -17,6 +19,7 @@ namespace DashboardData.Models
         //====== Entity Framework Core relationships ======
 
         // Foreign key to Location (1-to-N): 1 sensor belongs to 1 location
+        [Range(1, int.MaxValue, ErrorMessage = "You must select a location.")]
         public int LocationId { get; set; }  
         public Location Location { get; set; }
 
