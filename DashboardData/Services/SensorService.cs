@@ -24,7 +24,7 @@ namespace DashboardData.Services
             return await _dbContext.Locations.ToListAsync();
         }
 
-        public async Task<SensorData?> GetSensorByIdAsync(int id)
+        public async Task<SensorData> GetSensorByIdAsync(int id)
         {
             // FindAsync searches directly by Primary Key (Id)
             return await _dbContext.Sensors.FindAsync(id);
