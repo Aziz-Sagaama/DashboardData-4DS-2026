@@ -1,39 +1,31 @@
 ﻿@using DashboardData.Models
 @using DashboardData.Services
+@using Microsoft.JSInterop
 @page "/dashboard"
+@page "/"
 @rendermode InteractiveServer
 @attribute [StreamRendering]
 @inject ISensorService SensorService
 @inject NavigationManager NavManager
+@inject IJSRuntime JS
 
+<!-- Dans MyDashboard.razor -->
+<!-- In MyDashboard.razor -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title"> <i class="bi bi-bookmark-fill"></i> Total Sensors</h5>
-                <h2>@TotalSensors</h2>
-            </div>
-        </div>
+    <div class="col-md-4 mb-3">
+        <!-- Parameters are passed like simple HTML attributes -->
+        <KpiCard Title="Total Sensors" Value="@TotalSensors.ToString()"
+                 BackgroundColorClass="bg-primary" IconClass="bi-box-seam" />
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-thermometer-half"></i> Global Average</h5>
-                <h2>@Average.ToString("F1") °C</h2> 
-            </div>
-        </div>
+    <div class="col-md-4 mb-3">
+        <KpiCard Title="Global Average" Value="@($"{Average:F1} °C")"
+                 BackgroundColorClass="bg-success" IconClass="bi-bullseye" />
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-danger">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-thermometer-high"></i> Max Value</h5>
-                <h2>@MaxValue.ToString("F1") °C</h2> 
-            </div>
-        </div>
+    <div class="col-md-4 mb-3">
+        <KpiCard Title="Max Alert" Value="@($"{MaxValue:F1} °C")"
+                 BackgroundColorClass="bg-danger" IconClass="bi-exclamation-triangle-fill" />
     </div>
 </div>
-
-
 
 @if (Sensors == null)
 {
@@ -41,37 +33,42 @@
 }
 else
 {
-    <button class="btn btn-secondary " @onclick="LoadAll"><i class="bi bi-arrow-clockwise"></i> All Sensors</button>
-    <button class="btn btn-warning " @onclick="LoadCritical"><i class="bi bi-exclamation-triangle"></i> Alertes (> 30.0)</button>
-    <a href="/edit-sensor" class="btn btn-success "> <i class="bi bi-plus"></i> New Sensor</a>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Actions</th>
-                <th>Sensor</th>
-                <th>Location</th>
-                <th>Current Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var sensor in Sensors)
+    <div class="mb-3">
+        <button class="btn btn-outline-secondary ms-2" @onclick="() => ShowAsCards = !ShowAsCards">
+            <i class="bi bi-arrow-left-right"></i> Toggle View
+        </button>
+        <button class="btn btn-secondary ms-2" @onclick="LoadAll"><i class="bi bi-arrow-clockwise"></i> All Sensors</button>
+        <button class="btn btn-warning ms-2" @onclick="LoadCritical"><i class="bi bi-exclamation-triangle"></i> Alertes (> 30.0)</button>
+        <a href="/edit-sensor" class="btn btn-success ms-2"> <i class="bi bi-plus"></i> New Sensor</a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(DeleteMessage))
+    {
+        <div class="alert @DeleteMessageClass mt-3" role="alert">
+           <span class="bi bi-info-circle"></span> @DeleteMessage
+        </div>
+    }
+
+    @if (ShowAsCards)
+    {
+        <div class="row g-3">
+            @foreach (var s in Sensors)
             {
-                <tr>
-                    <td>
-                        <a href="/edit-sensor/@sensor.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteSensor(sensor.Id)"><i class="bi bi-trash"></i></button>
-                    </td>
-                    <td>@sensor.Name</td>
-                    <td>@(sensor.Location?.Name ?? "Undefined")</td>
-                    <td>@sensor.Value</td>
-                </tr>
+                <div class="col-12 col-sm-6 col-md-4 col-xl-3">
+                    <SensorCard Sensor="s" OnDeleteClicked="DeleteSensor" />
+                </div>
             }
-        </tbody>
-    </table>
+        </div>
+    }
+    else
+    {
+        <SensorTable Sensors="Sensors" OnDeleteClicked="DeleteSensor" />
+    }
 }
 
 @code {
     private List<SensorData> Sensors;
+    private bool ShowAsCards = false;
 
     private int TotalSensors;
     private double Average;
@@ -95,12 +92,36 @@ else
         Sensors = await SensorService.GetCriticalSensorsAsync(30.0);
     }
 
+    private string DeleteMessage;
+    private string DeleteMessageClass = "alert alert-info";
+
     private async Task DeleteSensor(int id)
     {
-        if (await SensorService.GetSensorByIdAsync(id) != null)
+        var sensor = Sensors?.FirstOrDefault(s => s.Id == id) ?? await SensorService.GetSensorByIdAsync(id);
+        var sensorName = sensor?.Name ?? "this sensor";
+
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{sensorName}'?");
+        if (confirmed)
         {
+           if (await SensorService.GetSensorByIdAsync(id) == null)
+                {
+                    DeleteMessage = "Sensor not found or already deleted.";
+                    DeleteMessageClass = "alert alert-danger";
+                    return;
+                }
+
             await SensorService.DeleteSensorAsync(id);
+            DeleteMessage = $"Sensor '{sensorName}' has been deleted.";
+            DeleteMessageClass = "alert alert-success";
             await LoadAll();
+            StateHasChanged(); // Force UI update to show the message immediately
+            await Task.Delay(5000); // Wait for 5 seconds
+            DeleteMessage = null;
+            DeleteMessageClass = "alert alert-info";
+            StateHasChanged();
         }
+
+        
+        
     }
 }
