@@ -1,0 +1,29 @@
+@using DashboardData.Models
+
+<!-- Components/UI/SensorCard.razor -->
+<div class="card shadow-sm h-100">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <h6 class="card-title text-muted mb-2">
+                    <i class="bi bi-thermometer-half text-primary"></i>
+                    @Sensor?.Name
+                </h6>
+                <h4 class="card-text fw-bold mb-2">
+                    @Sensor?.Value <span class="text-muted" style="font-size: 0.8rem;">°C</span>
+                </h4>
+                <p class="card-text text-secondary mb-0">
+                    <small>
+                        <i class="bi bi-geo-alt"></i>
+                        @(Sensor?.Location?.Name ?? "Aucun lieu")
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public SensorData Sensor { get; set; }
+}
